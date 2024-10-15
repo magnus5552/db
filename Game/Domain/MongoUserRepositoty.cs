@@ -6,11 +6,19 @@ namespace Game.Domain
     public class MongoUserRepository : IUserRepository
     {
         private readonly IMongoCollection<UserEntity> userCollection;
+        private readonly object lockObject = new();
         public const string CollectionName = "users";
 
         public MongoUserRepository(IMongoDatabase database)
         {
             userCollection = database.GetCollection<UserEntity>(CollectionName);
+            var createIndexModel = new CreateIndexModel<UserEntity>(
+                Builders<UserEntity>.IndexKeys.Ascending(x => x.Login),
+                new CreateIndexOptions
+                {
+                    Unique = true
+                });
+            userCollection.Indexes.CreateOne(createIndexModel);
         }
 
         public UserEntity Insert(UserEntity user)
@@ -26,12 +34,15 @@ namespace Game.Domain
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            var found = userCollection.Find(x => x.Login == login).FirstOrDefault();
-            if (found != null)
-                return found;
-            var newUser = new UserEntity(Guid.NewGuid()) { Login = login };
-            userCollection.InsertOne(newUser);
-            return newUser;
+            lock (lockObject)
+            {
+                var found = userCollection.Find(x => x.Login == login).FirstOrDefault();
+                if (found != null)
+                    return found;
+                var newUser = new UserEntity(Guid.NewGuid()) { Login = login };
+                userCollection.InsertOne(newUser);
+                return newUser;
+            }
         }
 
         public void Update(UserEntity user)
