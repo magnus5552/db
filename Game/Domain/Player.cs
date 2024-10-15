@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Game.Domain
 {
@@ -7,27 +8,32 @@ namespace Game.Domain
     /// </summary>
     public class Player
     {
+        [BsonConstructor]
         public Player(Guid userId, string name)
         {
             UserId = userId;
             Name = name;
         }
 
+        [BsonElement]
         public Guid UserId { get; }
 
         /// <summary>
         /// Снэпшот имени игрока на момент старта игры. Считайте, что это такое требование к игре.
         /// </summary>
+        [BsonElement]
         public string Name { get; }
         
         /// <summary>
         /// Ход, который выбрал игрок
         /// </summary>
+        [BsonElement]
         public PlayerDecision? Decision { get; set; }
         
         /// <summary>
         /// Текущие очки в игре. Сколько туров выиграл этот игрок.
         /// </summary>
+        [BsonElement]
         public int Score { get; set; }
     }
 }
