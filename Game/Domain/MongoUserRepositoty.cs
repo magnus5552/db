@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Game.Domain
@@ -47,7 +48,7 @@ namespace Game.Domain
 
         public void Update(UserEntity user)
         {
-            userCollection.ReplaceOne(x => x.Id == user.Id, user);
+            userCollection.UpdateOne(x => x.Id == user.Id, new BsonDocumentUpdateDefinition<UserEntity>(new BsonDocument("$set", user.ToBsonDocument())));
         }
 
         public void Delete(Guid id)
